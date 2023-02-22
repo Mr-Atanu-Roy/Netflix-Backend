@@ -71,11 +71,11 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 
 class OTPAdmin(admin.ModelAdmin):
-    list_display = ('user', 'is_expired', 'created_at')
+    list_display = ('otp', 'user', 'purpose', 'is_expired', 'created_at')
     fieldsets = [
         ("OTP Details", {
             "fields": (
-                ['user', 'is_expired', 'otp']
+                ['user', 'purpose', 'is_expired', 'otp']
             ),
         }),
     ]

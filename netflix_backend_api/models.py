@@ -8,10 +8,12 @@ from django.dispatch import receiver
 
 from .utils import *
 
+import random
+
 from autoslug import AutoSlugField
 
 from django.utils import timezone
-current_time = timezone.now()
+current_time = timezone.now
 
 
 #CHOICES
@@ -75,8 +77,8 @@ class BaseModel(models.Model):
  
  
 class OTP(BaseModel):
-    user = models.OneToOneField(NetflixUser, on_delete=models.CASCADE)
-    otp = models.UUIDField(default=uuid.uuid4)
+    user = models.ForeignKey(NetflixUser, on_delete=models.CASCADE)
+    otp = models.CharField(max_length=255, null=True, blank=True)
     is_expired = models.BooleanField(default=False)
     purpose = models.CharField(choices=otp_purpose_choices, max_length=255, default="email_verification")
     
@@ -93,7 +95,7 @@ class UserProfile(BaseModel):
     '''
     
     user = models.OneToOneField(NetflixUser, on_delete=models.CASCADE, verbose_name="User")
-    country = models.CharField(max_length=255, blank=True, null=True, verbose_name="Country")
+    country = models.CharField(max_length=255, blank=True, null=True, verbose_name="Country", default="india")
     date_of_birth = models.DateField(null=True, blank=True)
     language = models.CharField(max_length=255, choices=language_choices, default="english", verbose_name="Prefered Language")
     profile_picture = models.FileField(upload_to='user/profile', max_length=600, verbose_name="Profile Picture", blank=True,null=True)
@@ -251,7 +253,7 @@ class Review(BaseModel):
 @receiver(post_save, sender=NetflixUser)
 def NetflixUser_created_handler(sender, instance, created, *args, **kwargs):
     '''
-    This signal which will send a greetings email and create an otp instance each time after a new user register, i.e., a NetflixUser is created
+    This signal which will send a greetings email and create a UserProfile and OTP instance each time after a new user register, i.e., a NetflixUser is created
     '''
     if created:                
         subject = "Greetings From Netflix"
@@ -259,6 +261,10 @@ def NetflixUser_created_handler(sender, instance, created, *args, **kwargs):
         
         #starting the thread to send email
         SendEmail(subject, message, instance.email).start()
+        
+        #creating a UserProfile instance
+        newProfile = UserProfile.objects.create(user=instance)
+        newProfile.save()
         
         #creating a OTP instance
         newOTP = OTP.objects.create(user=instance)
@@ -271,6 +277,11 @@ def OTP_handler(sender, instance, created, *args, **kwargs):
     This signal send email based on purpose of OTP after an otp instance has been created
     '''
     if created :
+        
+        if instance.otp is None:
+            instance.otp = random.randint(100000, 999999)   #setting a random otp if otp field is none
+            instance.save()
+        
         if instance.purpose.lower() == "email_verification":
             subject = "Verify Your Email"
             message = f"Your OTP for verifying email - {instance.user} is : {instance.otp}. This OTP is valid for the next 10 mintutes only"
