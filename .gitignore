@@ -1,0 +1,5 @@
+.env
+/netflix_media
+/env
+*__pycache__
+db.sqlite3
