@@ -56,7 +56,7 @@ class NetflixUser(AbstractUser):
     
     class Meta:
         db_table = 'auth_user'
-        verbose_name_plural = 'Netflix User Profile'
+        verbose_name_plural = 'Netflix User'
     
     def __str__(self):
         return self.email
@@ -84,7 +84,7 @@ class OTP(BaseModel):
         verbose_name_plural = "Auth OTP"
     
     def __str__(self):
-        return f"{self.user}-{str(self.otp)}"
+        return f"{str(self.otp)}"
        
 
 class UserProfile(BaseModel):
@@ -96,11 +96,13 @@ class UserProfile(BaseModel):
     country = models.CharField(max_length=255, blank=True, null=True, verbose_name="Country")
     date_of_birth = models.DateField(null=True, blank=True)
     language = models.CharField(max_length=255, choices=language_choices, default="english", verbose_name="Prefered Language")
-    profile_picture = models.FileField(upload_to='user/profile', max_length=600, verbose_name="Profile Picture")
+    profile_picture = models.FileField(upload_to='user/profile', max_length=600, verbose_name="Profile Picture", blank=True,null=True)
+    
+    class Meta:
+        verbose_name_plural = "Netflix User Profile"
     
     def __str__(self):
         return str(self.user.email)
-
 
 
 class Genres(BaseModel):
@@ -159,10 +161,10 @@ class Season(BaseModel):
     
     name = models.CharField(max_length=255)
     season_slug = AutoSlugField(populate_from=name, unique=True, null=True)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     season_no = models.IntegerField(default=0)
     season_poster = models.FileField(upload_to = 'media/season-poster/', max_length=600)
-    trailer = models.OneToOneField(Trailer, on_delete=models.CASCADE, null=True)
+    trailer = models.OneToOneField(Trailer, on_delete=models.CASCADE, null=True, blank=True)
     
     
     
@@ -177,7 +179,7 @@ class Episode(BaseModel):
     season = models.ForeignKey(Season, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=255)
     episode_slug = AutoSlugField(populate_from=name, unique=True, null=True)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     episode_no = models.IntegerField(default=0)
     episode_url = models.URLField(max_length=600)
     
@@ -193,7 +195,7 @@ class Media(BaseModel):
     media_type = models.CharField(max_length=10, choices=media_type_choices, default="movie")
     title = models.CharField(max_length=255)
     media_slug = AutoSlugField(populate_from=title, unique=True)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     release_date = models.DateField(default=current_time)
     poster = models.FileField(upload_to = 'media/poster/', max_length=600)
     media_video = models.URLField(max_length=600, blank=True, null=True)
@@ -233,7 +235,7 @@ class Review(BaseModel):
     media = models.ForeignKey(Media, on_delete=models.CASCADE)
     user = models.ForeignKey(NetflixUser, on_delete=models.CASCADE)
     rating = models.IntegerField(choices=rating_choices)
-    comment = models.TextField()
+    comment = models.TextField(null=True, blank=True)
     
     class Meta:
         verbose_name_plural = "User Review"
@@ -249,13 +251,9 @@ class Review(BaseModel):
 @receiver(post_save, sender=NetflixUser)
 def NetflixUser_created_handler(sender, instance, created, *args, **kwargs):
     '''
-    This signal which will create a profile and otp instance each time after a new user register, i.e., a NetflixUser is created
+    This signal which will send a greetings email and create an otp instance each time after a new user register, i.e., a NetflixUser is created
     '''
-    if created:
-        #creating a profile instance
-        newProfile = UserProfile.objects.create(user=instance)
-        newProfile.save()
-        
+    if created:        
         #creating a OTP instance
         newOTP = OTP.objects.create(user=instance)
         newOTP.save()
@@ -264,7 +262,7 @@ def NetflixUser_created_handler(sender, instance, created, *args, **kwargs):
         message = f"Thank you for signing up with Netflix {instance.first_name}.... You have signed up using email - {instance.email}, at {instance.date_joined}"
         
         #starting the thread to send email
-        SendEmail(subject, message, receiver=(instance.email,)).start()
+        SendEmail(subject, message, instance.email).start()
         
 
 @receiver(post_save, sender=OTP)
@@ -272,18 +270,17 @@ def OTP_handler(sender, instance, created, *args, **kwargs):
     '''
     This signal send email based on purpose of OTP after an otp instance has been created
     '''
-    
-    otp = instance.otp
-    subject = instance.purpose
-        
-    if subject.lower() == "email_verification":
-        message = f"Your OTP for verifying email - {instance.user} is : {otp}. This OTP is valid for the next 10 mintutes only"
-        
-    elif subject.lower() == "reset_password":
-        message = f"Your OTP for reseting password for email - {instance.user} is : {otp}. This OTP is valid for the next 10 mintutes only"
+    if created :
+        if instance.purpose.lower() == "email_verification":
+            subject = "Verify Your Email"
+            message = f"Your OTP for verifying email - {instance.user} is : {instance.otp}. This OTP is valid for the next 10 mintutes only"
+            
+        elif instance.purpose.lower() == "reset_password":
+            subject = "Reset Your Password"
+            message = f"Your OTP for reseting password for email - {instance.user} is : {instance.otp}. This OTP is valid for the next 10 mintutes only"
 
     
-     #starting the thread to send email
-    SendEmail(subject, message, receiver=(instance.user,)).start()
+        #starting the thread to send email
+        SendEmail(subject, message, instance.user).start()
     
     

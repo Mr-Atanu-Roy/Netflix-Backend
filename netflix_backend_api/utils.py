@@ -10,11 +10,12 @@ class SendEmail(Thread):
     sender = settings.EMAIL_HOST_USER
     
     def __init__(self, subject, message, *receiver):
+        print(receiver)
         self.recipient_list = [emails for emails in receiver]
+        print(self.recipient_list)
         self.subject = subject
         self.message = message
-        
-        Thread.__init__()
+        Thread.__init__(self)
         
     def run(self):
         send_mail(self.subject, self.message, self.sender, self.recipient_list)

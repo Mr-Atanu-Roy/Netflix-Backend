@@ -32,7 +32,7 @@ class MediaInline(admin.StackedInline):
 
 
 class NetflixUserAdmin(admin.ModelAdmin):
-    list_display = ('email', 'first_name', 'is_verified', 'is_staff', 'last_login')
+    list_display = ('email', 'first_name', 'is_verified', 'is_staff', 'last_login', 'date_joined')
     fieldsets = [
         ("User Details", {
             "fields": (
@@ -54,6 +54,20 @@ class NetflixUserAdmin(admin.ModelAdmin):
     inlines = [ProfileInline, WatchlistInline, ReviewInline]
     
     search_fields = ["email", "first_name", "last_name", "is_verified"]
+    
+    
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'country', 'language', 'created_at')
+    fieldsets = [
+        ("User Details", {
+            "fields": (
+                ['user', 'profile_picture', 'country', 'date_of_birth', 'language']
+            ),
+        }),
+    ]
+
+    
+    search_fields = ["user", "country", "language"]
 
 
 class OTPAdmin(admin.ModelAdmin):
@@ -196,6 +210,9 @@ class ReviewAdmin(admin.ModelAdmin):
 #registering Netflixuser model
 admin.site.register(NetflixUser, NetflixUserAdmin)
 
+#registering Netflixuser model
+admin.site.register(UserProfile, UserProfileAdmin)
+
 #registering OTP model
 admin.site.register(OTP, OTPAdmin)
 
@@ -222,5 +239,6 @@ admin.site.register(Watchlist, WatchlistAdmin)
 
 #registering Review model
 admin.site.register(Review, ReviewAdmin)
+
 
 
