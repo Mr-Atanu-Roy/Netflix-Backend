@@ -253,16 +253,16 @@ def NetflixUser_created_handler(sender, instance, created, *args, **kwargs):
     '''
     This signal which will send a greetings email and create an otp instance each time after a new user register, i.e., a NetflixUser is created
     '''
-    if created:        
-        #creating a OTP instance
-        newOTP = OTP.objects.create(user=instance)
-        newOTP.save()
-        
+    if created:                
         subject = "Greetings From Netflix"
         message = f"Thank you for signing up with Netflix {instance.first_name}.... You have signed up using email - {instance.email}, at {instance.date_joined}"
         
         #starting the thread to send email
         SendEmail(subject, message, instance.email).start()
+        
+        #creating a OTP instance
+        newOTP = OTP.objects.create(user=instance)
+        newOTP.save()
         
 
 @receiver(post_save, sender=OTP)
@@ -281,6 +281,6 @@ def OTP_handler(sender, instance, created, *args, **kwargs):
 
     
         #starting the thread to send email
-        SendEmail(subject, message, instance.user).start()
+        SendEmail(subject, message, instance.user.email).start()
     
     
