@@ -86,7 +86,7 @@ class MovieAdmin(admin.ModelAdmin):
         }),
         ("Poster and Link", {
             "fields": (
-                ['movie_video', 'poster1', 'poster2']
+                ['movie_video_url', 'poster1', 'poster2']
             ),
         }),
     ]
@@ -132,7 +132,7 @@ class TrailerAdmin(admin.ModelAdmin):
         }),
         ("More Details", {
             "fields": (
-                ['trailer_url', 'thumbnail', 'release_date']
+                ['trailer_url', 'release_date']
             ),
         }),
     ]

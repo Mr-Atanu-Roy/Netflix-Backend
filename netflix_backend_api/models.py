@@ -123,12 +123,12 @@ class Movie(BaseModel):
     '''
     
     title = models.CharField(max_length=255)
-    movie_slug = AutoSlugField(populate_from=title, unique=True)
+    movie_slug = AutoSlugField(populate_from='title', unique=True)
     description = models.TextField(null=True, blank=True)
     release_date = models.DateField(default=current_time)
-    poster1 = models.FileField(upload_to = 'movie/poster/', max_length=600, verbose_name="Movie Pster 1", null=True)
-    poster2 = models.FileField(upload_to = 'movie/poster/', max_length=600, verbose_name="Movie Pster 2", null=True, blank=True)
-    movie_video = models.URLField(max_length=600, blank=True, null=True)
+    poster1 = models.FileField(upload_to = 'movie/poster/', max_length=600, verbose_name="Movie Poter 1", null=True)
+    poster2 = models.FileField(upload_to = 'movie/poster/', max_length=600, verbose_name="Movie Poter 2", null=True, blank=True)
+    movie_video_url = models.URLField(max_length=600, blank=True, null=True)
     genres = models.ManyToManyField(Genres)
 
     class Meta:
@@ -163,7 +163,6 @@ class Trailer(BaseModel):
     '''
     movie = models.OneToOneField(Movie, on_delete=models.CASCADE, null=True)
     trailer_url = models.URLField(max_length=600)
-    thumbnail = models.FileField(upload_to='movie/thumbnail', max_length=600)
     release_date = models.DateField(default=current_time)
     
     
@@ -171,7 +170,7 @@ class Trailer(BaseModel):
         verbose_name_plural = "Movie Trailer"
     
     def __str__(self):
-        return str(self.trailer_name)
+        return str(self.movie)
 
 
 class Watchlist(BaseModel):
