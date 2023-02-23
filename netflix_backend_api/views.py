@@ -10,14 +10,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from netflix_backend_api.helper import get_token, get_user, get_profile
 
-from netflix_backend_api.models import (
-    OTP
-)
 
 from netflix_backend_api.serializers import (
     RegisterSerializer, 
     LoginSerializer,
     UserProfileSerializer,
+    OTPSerializer,
     EmailVerifySerializer,
     ResetPasswordSerializers,
 )
@@ -214,53 +212,38 @@ class GetOTPView(APIView):
     def get(self, request):
         '''handel post request-Generate OTP'''
         
-        #check if request.data has email and purpose
-        if "email" in request.data and "purpose" in request.data:
-            email = request.data.get('email')
-            purpose = request.data.get('purpose')
+        otp_serializer = OTPSerializer(data=request.data)
 
-            #get the user instance and errors
-            user, error = get_user(email)
+        #check if data is valid
+        if otp_serializer.is_valid():
+            otp = otp_serializer.save()
             
-            if user is not None:
-                #if user exists create otp
-                newOTP = OTP.objects.create(user=user, purpose=purpose)
-                newOTP.save()
-
-                response = {
+            response = {
                     "status": status.HTTP_201_CREATED,
                     "data": {
-                        "email": email,
-                        "otp": str(newOTP),
-                        "purpose": purpose
+                        "email": request.data.get("email"),
+                        "otp": str(otp),
+                        "purpose": request.data.get("purpose")
                     },
-                    "message": f"OTP generated for {purpose}"
+                    "message": f"OTP generated"
                 }
                 
-                return Response(response, status=status.HTTP_201_CREATED)
-            
-            else:
-                #otherwise return the error
-                response = {
-                    "status": status.HTTP_400_BAD_REQUEST,
-                    "data": {
-                        "email": email,
-                        "otp": "",
-                        "purpose": purpose
-                    },
-                    "message": error
-                }
-                
-                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            return Response(response, status=status.HTTP_201_CREATED)
         
         else:
-            #if email or purpose is not present in request.data return this
+            #return this if validation fails
             response = {
-                "status" : status.HTTP_400_BAD_REQUEST,
-                "data": "",
-                "message": "email and purpose are required"
-            }
+                    "status": status.HTTP_400_BAD_REQUEST,
+                    "data": {
+                        "email": request.data.get("email"),
+                        "otp": "",
+                        "purpose": request.data.get("purpose")
+                    },
+                    "message": otp_serializer.errors
+                }
+                
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
+  
     
       
 class EmailVerifyView(APIView):
@@ -271,60 +254,48 @@ class EmailVerifyView(APIView):
     def put(self, request):
         '''handel put request-verify otp'''
         
-        #check if request.data has email, otp and purpose
-        if "email" in request.data and "otp" in request.data:
-            
-            email = request.data.get('email')
-                        
-            #get the user instance
-            user, error = get_user(email)
-            
-            #check if user exists
-            if user is not None:
-                serializer = EmailVerifySerializer(user, data=request.data, partial=True)
-                if serializer.is_valid():
-                    #if serializer is valid save it 
-                    serializer.save()
-                    response = {
-                        "status": status.HTTP_200_OK,
-                        "data": serializer.validated_data,
-                        "message": "Password Updated"
-                    }
+        email = request.data.get('email')
+                    
+        #get the user instance
+        user, error = get_user(email)
+        
+        #check if user exists
+        if user is not None:
+            serializer = EmailVerifySerializer(user, data=request.data, partial=True, context={"user": user})
+            if serializer.is_valid():
+                #if serializer is valid save it 
+                serializer.save()
+                response = {
+                    "status": status.HTTP_200_OK,
+                    "data": serializer.validated_data,
+                    "message": "Email Verified"
+                }
 
-                    return Response(response, status=status.HTTP_200_OK)
-                
-                else:
-                    #else return this
-                    response = {
-                        "status": status.HTTP_400_BAD_REQUEST,
-                        "data": serializer.data,
-                        "message": serializer.errors
-                    }
-
-                    return Response(response, status=status.HTTP_400_BAD_REQUEST)
-             
+                return Response(response, status=status.HTTP_200_OK)
+            
             else:
                 #else return this
                 response = {
                     "status": status.HTTP_400_BAD_REQUEST,
-                    "data": {
-                        "email": email,
-                        "otp": "",
-                    },
-                    "message": error
+                    "data": serializer.data,
+                    "message": serializer.errors
                 }
-                
+
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        
-        else:
-            #if email or otp or purpose is not present in request.data return this
-            response = {
-                "status" : status.HTTP_400_BAD_REQUEST,
-                "data": "",
-                "message": "email and otp are Required"
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
             
+        else:
+            #else return this
+            response = {
+                "status": status.HTTP_400_BAD_REQUEST,
+                "data": {
+                    "email": email,
+                    "otp": "",
+                },
+                "message": error
+            }
+            
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
 
 
 class ResetPassword(APIView):
@@ -334,56 +305,47 @@ class ResetPassword(APIView):
     
     def put(self, request):
         '''handel put request-update password'''
+
+        #get the user instance
+        user, error = get_user(request.data.get("email"))
         
-        if "email" in request.data and "otp" in request.data and "password" in request.data:
-            
-            #get the user instance
-            user, error = get_user(request.data.get("email"))
-            
-            #check if user exists
-            if user is not None:
-                serializer = ResetPasswordSerializers(user, data=request.data, partial=True)
-                
-                if serializer.is_valid():
-                    #if serializer is valid save it 
-                    serializer.save()
-                    response = {
-                        "status": status.HTTP_200_OK,
-                        "data": serializer.validated_data,
-                        "message": "Password Updated"
-                    }
+        #check if user exists
+        if user is not None:
+            serializer = ResetPasswordSerializers(user, data=request.data, partial=True)
+   
+            if serializer.is_valid():
+                #if serializer is valid save it 
+                serializer.save()
+                response = {
+                    "status": status.HTTP_200_OK,
+                    "data": serializer.validated_data,
+                    "message": "Password Updated"
+                }
 
-                    return Response(response, status=status.HTTP_200_OK)
-                
-                else:
-                    #else return this
-                    response = {
-                        "status": status.HTTP_400_BAD_REQUEST,
-                        "data": serializer.data,
-                        "message": serializer.errors
-                    }
-
-                    return Response(response, status=status.HTTP_400_BAD_REQUEST)
-                
+                return Response(response, status=status.HTTP_200_OK)
+            
             else:
-                #return this if user does not exists
+                #else return this
                 response = {
                     "status": status.HTTP_400_BAD_REQUEST,
-                    "data": "",
-                    "message": error
+                    "data": serializer.data,
+                    "message": serializer.errors
                 }
 
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        
+            
         else:
-            #if email or otp or purpose is not present in request.data return this
+            #return this if user does not exists
             response = {
-                "status" : status.HTTP_400_BAD_REQUEST,
+                "status": status.HTTP_400_BAD_REQUEST,
                 "data": "",
-                "message": "email, password and otp are Required"
+                "message": error
             }
+
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        
+    
+
+    
 
 
 

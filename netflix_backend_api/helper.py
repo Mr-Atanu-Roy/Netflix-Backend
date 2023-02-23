@@ -15,7 +15,7 @@ current_time = datetime.datetime.now(tz)
 def get_user(email):
     '''This function reurns the user instance on passing email'''
     try:
-        return NetflixUser.objects.get(email=email), ""
+        return NetflixUser.objects.get(email=email), None
     except NetflixUser.DoesNotExist:            
         return None, "Invalid Email"
     except Exception as e:
@@ -25,7 +25,7 @@ def get_user(email):
 def get_profile(user):
     '''get user profile instance'''
     try:
-        return UserProfile.objects.get(user=user), ""
+        return UserProfile.objects.get(user=user), None
     
     except UserProfile.DoesNotExist:
         return None, "User does not exists"

@@ -65,6 +65,31 @@ class UserProfileSerializer(serializers.ModelSerializer):
         }
 
 
+class OTPSerializer(serializers.Serializer):
+    '''Handels get OTP request'''
+    
+    email = serializers.EmailField()
+    purpose = serializers.CharField()
+    
+    def validate(self, data):
+        _, error = get_user(data.get("email"))
+        
+        if error is not None:
+            raise serializers.ValidationError(error)
+        
+        return data
+    
+    def create(self, validated_data):
+        user, _ = get_user(validated_data.get("email"))
+        newOTP = OTP.objects.create(user=user, purpose=validated_data.get("purpose"))
+        return newOTP
+    
+    def update(self, instance, validated_data):
+        pass
+    
+
+
+
 class EmailVerifySerializer(serializers.Serializer):
     '''
     It will handel email verification
@@ -76,24 +101,29 @@ class EmailVerifySerializer(serializers.Serializer):
         
     def validate(self, data):
         '''validate otp'''
-        
-        user, error = get_user(data.get("email"))
-        
-        if user is not None:
-            ten_min_ago = current_time - datetime.timedelta(minutes=10)
-            checkOTP = OTP.objects.filter(otp=data.get("otp"), user=user, is_expired=False, purpose="email_verification", created_at__gte=ten_min_ago).first()
+
+        if self.context.get("user"):
+            user, _ = get_user(data.get("email"))
             
             if user.is_verified:
+            
                 raise serializers.ValidationError("This email is already verified")
             
-            if not checkOTP:
-                raise serializers.ValidationError("OTP is expired")
             else:
-                checkOTP.is_expired=True
-                checkOTP.save()
-                
-        else:
-            raise serializers.ValidationError(error)
+                if data.get("otp"):
+                    
+                    ten_min_ago = current_time - datetime.timedelta(minutes=10)
+                    checkOTP = OTP.objects.filter(otp=data.get("otp"), user=user, is_expired=False, purpose="email_verification", created_at__gte=ten_min_ago).first()
+                    
+                    
+                    if not checkOTP:
+                        raise serializers.ValidationError("Invalid OTP. OTP may be expired")
+                    else:
+                        checkOTP.is_expired=True
+                        checkOTP.save()
+                        
+                else:
+                    raise serializers.ValidationError("OTP is required")
             
         
         return data
@@ -125,21 +155,22 @@ class ResetPasswordSerializers(serializers.Serializer):
     def validate(self, data):
         '''validate otp'''
         
-        user, error = get_user(data.get("email"))
+        if data.get("password") is None:
+            raise serializers.ValidationError("Password is required")
         
-        if user is not None:
-            ten_min_ago = current_time - datetime.timedelta(minutes=10)
-            checkOTP = OTP.objects.filter(otp=data.get("otp"), user=user, is_expired=False, purpose="reset_password", created_at__gte=ten_min_ago).first()
-            
-            
-            if not checkOTP:
-                raise serializers.ValidationError("OTP is expired")
-            else:
-                checkOTP.is_expired=True
-                checkOTP.save()
-                
+        if data.get("otp") is None:        
+            raise serializers.ValidationError("OTP is required")
+        
+        user, _ = get_user(data.get("email"))
+         
+        ten_min_ago = current_time - datetime.timedelta(minutes=10)
+        checkOTP = OTP.objects.filter(otp=data.get("otp"), user=user, is_expired=False, purpose="reset_password", created_at__gte=ten_min_ago).first()
+        
+        if not checkOTP:
+            raise serializers.ValidationError("Invalid OTP. OTP may be expired")
         else:
-            raise serializers.ValidationError(error)
+            checkOTP.is_expired=True
+            checkOTP.save()
             
         
         return data
@@ -148,9 +179,8 @@ class ResetPasswordSerializers(serializers.Serializer):
     def update(self, instance, validated_data):
         '''Update the password'''
         password = validated_data.get("password", None)
-        if password is not None or password != "":
-            instance.set_password(password)
-            instance.save()
+        instance.set_password(password)
+        instance.save()
         
         return instance
         
