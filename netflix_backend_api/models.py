@@ -23,11 +23,6 @@ language_choices = (
     ("bengali", "Bengali"), 
 )
 
-media_type_choices = (
-    ("movie", "Movie"),    
-    ("Series", "Series"),  
-)
-
 rating_choices = (
     (1, '1'),
     (2, '2'),
@@ -111,22 +106,43 @@ class Genres(BaseModel):
     '''
     It will contain information about movie and series genres
     '''
+    
     name = models.CharField(max_length=255)
     description = models.TextField()
     
     class Meta:
-        verbose_name_plural = "Media Genre"
+        verbose_name_plural = "Movie Genre"
     
     def __str__(self):
         return self.name
     
-  
+    
+class Movie(BaseModel):
+    '''
+    It will contain data of all movies and series
+    '''
+    
+    title = models.CharField(max_length=255)
+    movie_slug = AutoSlugField(populate_from=title, unique=True)
+    description = models.TextField(null=True, blank=True)
+    release_date = models.DateField(default=current_time)
+    poster = models.FileField(upload_to = 'movie/poster/', max_length=600)
+    movie_video = models.URLField(max_length=600, blank=True, null=True)
+    genres = models.ManyToManyField(Genres)
+
+    class Meta:
+        verbose_name_plural = "Movies"
+    
+    def __str__(self):
+        return self.title
+    
     
 class Cast(BaseModel):
     '''
     It will contain information about the cast or actors
     '''
     
+    movie = models.ManyToManyField(Movie)
     name = models.CharField(max_length=255)
     country = models.CharField(max_length=255)
     date_of_birth = models.DateField(null=True, blank=True)
@@ -134,7 +150,7 @@ class Cast(BaseModel):
     image = models.FileField(upload_to='cast/', max_length=600)
     
     class Meta:
-        verbose_name_plural = "Media Casts"
+        verbose_name_plural = "Movie Casts"
 
     def __str__(self):
         return self.name
@@ -142,76 +158,19 @@ class Cast(BaseModel):
 
 class Trailer(BaseModel):
     '''
-    It will contain information about the trailer of a movie or series 
+    It will contain information about the trailer of a movie
     '''
-    trailer_name = models.CharField(max_length=255, null=True)
+    movie = models.OneToOneField(Movie, on_delete=models.CASCADE, null=True)
     trailer_url = models.URLField(max_length=600)
-    thumbnail = models.FileField(upload_to='media/thumbnail', max_length=600)
+    thumbnail = models.FileField(upload_to='movie/thumbnail', max_length=600)
     release_date = models.DateField(default=current_time)
     
+    
     class Meta:
-        verbose_name_plural = "Media Trailer"
+        verbose_name_plural = "Movie Trailer"
     
     def __str__(self):
         return str(self.trailer_name)
-      
-
-class Season(BaseModel):
-    '''
-    Contains name, description, poster and episode of a season
-    '''
-    
-    name = models.CharField(max_length=255)
-    season_slug = AutoSlugField(populate_from=name, unique=True, null=True)
-    description = models.TextField(null=True, blank=True)
-    season_no = models.IntegerField(default=0)
-    season_poster = models.FileField(upload_to = 'media/season-poster/', max_length=600)
-    trailer = models.OneToOneField(Trailer, on_delete=models.CASCADE, null=True, blank=True)
-    
-    
-    
-    def __str__(self):
-        return f"{self.name}-S{self.season_no}"
-    
-
-class Episode(BaseModel):
-    '''
-    Contains name, description, url of episodes of a season
-    '''
-    season = models.ForeignKey(Season, on_delete=models.CASCADE, null=True)
-    name = models.CharField(max_length=255)
-    episode_slug = AutoSlugField(populate_from=name, unique=True, null=True)
-    description = models.TextField(null=True, blank=True)
-    episode_no = models.IntegerField(default=0)
-    episode_url = models.URLField(max_length=600)
-    
-    def __str__(self):
-        return f"{self.name}-E{self.episode_no}-S{self.season.name}"   
-  
-    
-class Media(BaseModel):
-    '''
-    It will contain data of all movies and series
-    '''
-    
-    media_type = models.CharField(max_length=10, choices=media_type_choices, default="movie")
-    title = models.CharField(max_length=255)
-    media_slug = AutoSlugField(populate_from=title, unique=True)
-    description = models.TextField(null=True, blank=True)
-    release_date = models.DateField(default=current_time)
-    poster = models.FileField(upload_to = 'media/poster/', max_length=600)
-    media_video = models.URLField(max_length=600, blank=True, null=True)
-    genres = models.ManyToManyField(Genres)
-    cast = models.ManyToManyField(Cast)
-    trailer = models.OneToOneField(Trailer, on_delete=models.CASCADE)
-    is_season = models.BooleanField(default=False)
-    season = models.ForeignKey(Season, blank=True, null=True, on_delete=models.CASCADE)
-    
-    class Meta:
-        verbose_name_plural = "Media-Movies/Seasons"
-    
-    def __str__(self):
-        return self.title
 
 
 class Watchlist(BaseModel):
@@ -219,14 +178,14 @@ class Watchlist(BaseModel):
     It will contain the movies and series that a user will add to his watchlist
     '''
     
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE, null=True)
     user = models.OneToOneField(NetflixUser, on_delete=models.CASCADE, verbose_name="User")
-    media = models.ForeignKey(Media, on_delete=models.CASCADE)
     
     class Meta:
         verbose_name_plural = "User Watchlist"
 
     def __str__(self):
-        return str(self.media.title)
+        return str(self.movie.title)
 
 
 class Review(BaseModel):
@@ -234,7 +193,7 @@ class Review(BaseModel):
     Contains reviews of User for movies and series
     '''
     
-    media = models.ForeignKey(Media, on_delete=models.CASCADE)
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE, null=True)
     user = models.ForeignKey(NetflixUser, on_delete=models.CASCADE)
     rating = models.IntegerField(choices=rating_choices)
     comment = models.TextField(null=True, blank=True)
@@ -244,7 +203,7 @@ class Review(BaseModel):
     
     
     def __str__(self):
-        return f"{self.media.title} - {self.user.first_name} - {self.rating}"
+        return f"{self.movie.title} - {self.user.first_name} - {self.rating}"
 
     
 

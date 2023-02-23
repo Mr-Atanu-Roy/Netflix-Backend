@@ -15,21 +15,9 @@ class ReviewInline(admin.TabularInline):
     extra = 2
     
     
-class TrailerInline(admin.TabularInline):
+class TrailerInline(admin.StackedInline):
     model = Trailer
     
-class EpisodeInline(admin.StackedInline):
-    model = Episode
-    extra = 2
-    
-class SeasonInline(admin.StackedInline):
-    model = Season
-    
-class MediaInline(admin.StackedInline):
-    model = Media
-
-
-
 
 class NetflixUserAdmin(admin.ModelAdmin):
     list_display = ('email', 'first_name', 'is_verified', 'is_staff', 'last_login', 'date_joined')
@@ -83,62 +71,31 @@ class OTPAdmin(admin.ModelAdmin):
     search_fields = ["user", "is_expired"]
     
     
-class MediaAdmin(admin.ModelAdmin):
-    list_display = ('media_type', 'title', 'release_date', 'is_season', 'created_at')
+class MovieAdmin(admin.ModelAdmin):
+    list_display = ('title', 'release_date', 'created_at')
     fieldsets = [
-        ("Media Details", {
+        ("Movie Details", {
             "fields": (
-                ['title', 'media_type', 'release_date', 'description']
+                ['title', 'release_date', 'description']
             ),
         }),
-        ("Trailer and Links", {
+        ("Movie Genre", {
             "fields": (
-                ['trailer', 'poster', 'media_video']
-            ),
+                ['genres']
+            )
         }),
-        ("Season", {
+        ("Poster and Link", {
             "fields": (
-                ['is_season', 'season']
+                ['poster', 'movie_video']
             ),
-        }),
-        ("Cast and Genre", {
-            "fields": (
-                ['cast', 'genres']
-            ), 'classes': ['collapse']
         }),
     ]
     
+    inlines = [TrailerInline]
     
-    search_fields = ["title", "media_type", "cast", "release_date"]
+    search_fields = ["title", "cast", "release_date"]
 
-
-class SeasonAdmin(admin.ModelAdmin):
-    list_display = ('name', 'season_no', 'created_at')
-    fieldsets = [
-        ("Season Details", {
-            "fields": (
-                ['name', 'description', 'season_no', 'season_poster']
-            ),
-        }),
-    ]
-    
-    inlines = [EpisodeInline]
-    
-    search_fields = ["name"]
-    
-class EpisodeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'episode_no', 'season', 'created_at')
-    fieldsets = [
-        ("Season Details", {
-            "fields": (
-                ['name', 'episode_no','episode_url', 'season', 'description']
-            ),
-        }),
-    ]
-    
-    search_fields = ["name", "season"]
-    
-    
+   
 class GenresAdmin(admin.ModelAdmin):
     list_display = ('name', 'created_at')
     fieldsets = [
@@ -166,26 +123,30 @@ class CastAdmin(admin.ModelAdmin):
 
 
 class TrailerAdmin(admin.ModelAdmin):
-    list_display = ('trailer_name', 'release_date', 'created_at')
+    list_display = ('movie', 'release_date', 'created_at')
     fieldsets = [
-        ("Trailer Details", {
+        ("Movie Details", {
             "fields": (
-                ['trailer_name', 'trailer_url', 'thumbnail', 'release_date']
+                ['movie']
+            ),
+        }),
+        ("More Details", {
+            "fields": (
+                ['trailer_url', 'thumbnail', 'release_date']
             ),
         }),
     ]
+
     
-    inlines = [MediaInline, SeasonInline]
-    
-    search_fields = ["trailer_name", 'country']
+    search_fields = ["movie"]
 
 
 class WatchlistAdmin(admin.ModelAdmin):
-    list_display = ('user', 'media', 'created_at')
+    list_display = ('user', 'movie', 'created_at')
     fieldsets = [
         ("Watchlist Details", {
             "fields": (
-                ['user', 'media']
+                ['user', 'movie']
             ),
         }),
     ]
@@ -194,11 +155,11 @@ class WatchlistAdmin(admin.ModelAdmin):
 
 
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ('user', 'media', 'rating', 'created_at')
+    list_display = ('user', 'movie', 'rating', 'created_at')
     fieldsets = [
         ("Rating Details", {
             "fields": (
-                ['user', 'media', 'rating', 'comment']
+                ['user', 'movie', 'rating', 'comment']
             ),
         }),
     ]
@@ -216,14 +177,8 @@ admin.site.register(UserProfile, UserProfileAdmin)
 #registering OTP model
 admin.site.register(OTP, OTPAdmin)
 
-#registering Media model
-admin.site.register(Media, MediaAdmin)
-
-#registering Season model
-admin.site.register(Season, SeasonAdmin)
-
-#registering Episode model
-admin.site.register(Episode, EpisodeAdmin)
+#registering Movie model
+admin.site.register(Movie, MovieAdmin)
 
 #registering Genres model
 admin.site.register(Genres, GenresAdmin)
