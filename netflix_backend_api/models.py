@@ -126,7 +126,8 @@ class Movie(BaseModel):
     movie_slug = AutoSlugField(populate_from=title, unique=True)
     description = models.TextField(null=True, blank=True)
     release_date = models.DateField(default=current_time)
-    poster = models.FileField(upload_to = 'movie/poster/', max_length=600)
+    poster1 = models.FileField(upload_to = 'movie/poster/', max_length=600, verbose_name="Movie Pster 1", null=True)
+    poster2 = models.FileField(upload_to = 'movie/poster/', max_length=600, verbose_name="Movie Pster 2", null=True, blank=True)
     movie_video = models.URLField(max_length=600, blank=True, null=True)
     genres = models.ManyToManyField(Genres)
 

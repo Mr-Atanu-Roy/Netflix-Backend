@@ -86,7 +86,7 @@ class MovieAdmin(admin.ModelAdmin):
         }),
         ("Poster and Link", {
             "fields": (
-                ['poster', 'movie_video']
+                ['movie_video', 'poster1', 'poster2']
             ),
         }),
     ]
