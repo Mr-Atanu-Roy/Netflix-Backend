@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import render
 from django.contrib import auth
 
 
@@ -25,11 +25,15 @@ from netflix_backend_api.serializers import (
     ResetPasswordSerializers,
     MovieSerializer,
     TrailerSerializer,
+    CastSerializer,
+    GenresSerializer,
 )
 
 from netflix_backend_api.models import (
     Movie,
     Trailer,
+    Cast,
+    Genres,
 )
 
 # Create your views here.
@@ -371,35 +375,14 @@ class ListMovieView(ListAPIView):
     
 
 
-class RetriveMovieView(APIView):
+class RetriveMovieView(RetrieveAPIView):
     '''
     This api view will retrive details of a movie as as per given movie slug
     '''
+    queryset = Movie.objects.all() 
+    serializer_class = MovieSerializer
     
-    def get(self, request, movieSlug):
-        '''handel get request-retrive movie'''
-        
-        try:
-            #check if movie exists
-            movie = Movie.objects.get(movie_slug=movieSlug)
-            
-        except Movie.DoesNotExist:
-            #else return this
-            response = {
-                "status": status.HTTP_400_BAD_REQUEST,
-                "data": request.data,
-                "message": "Movie does not exists"
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        
-        
-        movie_serializer = MovieSerializer(movie)
-        response = {
-            "status": status.HTTP_200_OK,
-            "data": movie_serializer.data,
-            "message": "Movie Retrived"
-        }
-        return Response(response, status=status.HTTP_200_OK)
+    lookup_field = 'movie_slug' #setting movie_slug as lookup field instead of pk
             
               
 
@@ -415,7 +398,177 @@ class ListTrailerView(ListAPIView):
     filterset_fields = ['movie']
         
         
+
+class RetriveTrailerView(ListAPIView):
+    '''
+    This api view will retrive trailer details on basis of movie-slug
+    '''
+    
+    def get(self, request, movie_slug):
+        
+        try:
+            #check if movie exists
+            movie = Movie.objects.get(movie_slug=movie_slug)
+            trailer = Trailer.objects.get(movie=movie)
+            
+        except Movie.DoesNotExist or Trailer.DoesNotExist:
+            #else return this
+            response = {
+                "status": status.HTTP_400_BAD_REQUEST,
+                "data": request.data,
+                "message": "Movie does not exists"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            print(e)
+            response = {
+                "status": status.HTTP_400_BAD_REQUEST,
+                "data": request.data,
+                "message": "Some thing went wrong"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
         
         
+        trailer_serializer = TrailerSerializer(trailer)
+        
+        response = {
+            "status": status.HTTP_200_OK,
+            "data": trailer_serializer.data,
+            "message": "Trailer Retrived"
+        }
+        return Response(response, status=status.HTTP_200_OK)
+        
+
+class ListCastView(ListAPIView):
+    '''
+    This api view will retrive all cast or filters cast based on query filter
+    '''
+    
+    queryset = Cast.objects.all() 
+    serializer_class = CastSerializer
+    
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['name', 'country']
+
+
+class RetriveCastView(APIView):
+    '''
+    This api view will retrive cast details on basis of movie slug
+    ''' 
+    
+    def get(self, request, movie_slug):
+        
+        try:
+            #check if movie exists
+            movie = Movie.objects.get(movie_slug=movie_slug)
+            cast = Cast.objects.filter(movie=movie)
+
+        except Movie.DoesNotExist or Cast.DoesNotExist:
+            #else return this
+            response = {
+                "status": status.HTTP_400_BAD_REQUEST,
+                "data": request.data,
+                "message": "Movie does not exists"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            print(e)
+            response = {
+                "status": status.HTTP_400_BAD_REQUEST,
+                "data": request.data,
+                "message": "Some thing went wrong"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+        if len(cast) > 1:
+            # if more than one cast is there do this 
+            cast_serializer = CastSerializer(cast, many=True)
+        else:
+            #else do this
+            cast_serializer = CastSerializer(cast)
+            
+        response = {
+            "status": status.HTTP_200_OK,
+            "data": cast_serializer.data,
+            "message": "Cast Retrived"
+        }
+        return Response(response, status=status.HTTP_200_OK)
+     
+ 
+class ListGenresView(ListAPIView):
+    '''
+    This api view will retrive all genres or filters genres based on query filter
+    '''
+    
+    queryset = Genres.objects.all() 
+    serializer_class = GenresSerializer
+    
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['name']    
+    
+
+class FullMovieDetailView(APIView):
+    '''
+    This api view will retrive all details retaled to a movie (like movie, trailer, cast, genres details) on basis of slug
+    '''
+    
+    def get(self, request, movie_slug):
+        '''Handel get request- Retrive movie details'''
+        try:
+            #check if movie exists
+            movie = Movie.objects.get(movie_slug=movie_slug)
+            trailer = Trailer.objects.get(movie=movie)
+            cast = Cast.objects.filter(movie=movie)
+            genre = Genres.objects.filter(movie=movie)
+            
+            print(movie, trailer, cast, genre)
+
+        except Movie.DoesNotExist or Trailer.DoesNotExist or Cast.DoesNotExist or Genres.DoesNotExist:
+            #else return this
+            response = {
+                "status": status.HTTP_400_BAD_REQUEST,
+                "data": request.data,
+                "message": "Movie does not exists"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            print(e)
+            response = {
+                "status": status.HTTP_400_BAD_REQUEST,
+                "data": request.data,
+                "message": "Some thing went wrong"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
         
         
+        movie_serializer = MovieSerializer(movie)
+        trailer_serializer = TrailerSerializer(trailer)
+        
+        if len(cast) > 1:
+            cast_serializer = CastSerializer(cast, many=True)
+        else:
+            cast_serializer = CastSerializer(cast)
+        
+        if len(genre) > 1:
+            genre_serializer = GenresSerializer(genre, many=True)
+        else:
+            genre_serializer = GenresSerializer(genre)    
+        
+        response = {
+            "status": status.HTTP_200_OK,
+            "data": {
+            
+            "movie": movie_serializer.data,
+            "trailer": trailer_serializer.data,
+            "cast": cast_serializer.data,
+            "genre": genre_serializer.data,
+                
+            },
+            "message": "Movie details retrived"
+        }
+        
+        return Response(response, status=status.HTTP_200_OK)
+

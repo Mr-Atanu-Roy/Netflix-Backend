@@ -12,8 +12,19 @@ urlpatterns = [
     
     #movie related urls
     path('movies/', ListMovieView.as_view(), name="movies"),
-    path('movies/<movieSlug>', RetriveMovieView.as_view(), name="movies"),
+    path('movies/<slug:movie_slug>', RetriveMovieView.as_view(), name="movie-detail"),
+    path('full-movie-detail/<slug:movie_slug>', FullMovieDetailView.as_view(), name="full-movie-detail"),
     
     #trailer related urls
-    path('trailer/', ListTrailerView.as_view(), name="trailer"),
+    path('trailer/', ListTrailerView.as_view(), name="trailers"),
+    path('trailer/<slug:movie_slug>', RetriveTrailerView.as_view(), name="trailer-detail"),
+    
+    #cast related urls
+    path('cast/', ListCastView.as_view(), name="casts"),
+    path('cast/<slug:movie_slug>', RetriveCastView.as_view(), name="cast-detail"),
+    
+    #cast related urls
+    path('genres/', ListGenresView.as_view(), name="genres"),
+
+    
 ]

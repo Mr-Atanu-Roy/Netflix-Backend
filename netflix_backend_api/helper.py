@@ -34,8 +34,6 @@ def get_profile(user):
         return None, "something went wrong"
 
 
-
-
 def get_token(user):
     '''
     it will generate a new token for the given user object

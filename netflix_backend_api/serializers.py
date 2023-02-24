@@ -9,6 +9,10 @@ from netflix_backend_api.models import (
     OTP,
     Movie,
     Trailer,
+    Cast,
+    Genres,
+    Watchlist,
+    Review
 )
 
 
@@ -207,5 +211,24 @@ class TrailerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trailer
         exclude = ['created_at', 'updated_at']
+        
+        
+class CastSerializer(serializers.ModelSerializer):
+    '''Handels cast model'''
+    
+    class Meta:
+        model = Cast
+        exclude = ['created_at', 'updated_at']
     
     
+class GenresSerializer(serializers.ModelSerializer):
+    '''Handels Genres model'''
+    
+    class Meta:
+        model = Genres
+        exclude = ['created_at', 'updated_at']
+        
+    
+
+        
+        

@@ -116,8 +116,7 @@ class Genres(BaseModel):
     def __str__(self):
         return self.name
     
-    
-    
+   
 class Cast(BaseModel):
     '''
     It will contain information about the cast or actors
@@ -164,7 +163,7 @@ class Trailer(BaseModel):
     '''
     It will contain information about the trailer of a movie
     '''
-    movie = models.OneToOneField(Movie, on_delete=models.CASCADE, null=True)
+    movie = models.OneToOneField(Movie, on_delete=models.CASCADE, null=True, unique=True)
     trailer_url = models.URLField(max_length=600)
     release_date = models.DateField(default=current_time)
     
