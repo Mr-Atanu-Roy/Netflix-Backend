@@ -7,6 +7,8 @@ from netflix_backend_api.models import (
     NetflixUser,
     UserProfile,
     OTP,
+    Movie,
+    Trailer,
 )
 
 
@@ -38,6 +40,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data.get("password"))  
         user.save()
         return user
+  
     
    
 class LoginSerializer(serializers.ModelSerializer):
@@ -51,6 +54,7 @@ class LoginSerializer(serializers.ModelSerializer):
         model = NetflixUser
         fields = ["email", "password"]
 
+
     
 class UserProfileSerializer(serializers.ModelSerializer):
     '''
@@ -63,6 +67,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'user': {'read_only': True},
         }
+
 
 
 class OTPSerializer(serializers.Serializer):
@@ -87,7 +92,6 @@ class OTPSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         pass
     
-
 
 
 class EmailVerifySerializer(serializers.Serializer):
@@ -139,8 +143,8 @@ class EmailVerifySerializer(serializers.Serializer):
     
     def create(self, validated_data):
         return validated_data
-        
 
+        
           
 class ResetPasswordSerializers(serializers.Serializer):
     '''
@@ -189,6 +193,19 @@ class ResetPasswordSerializers(serializers.Serializer):
         return validated_data
     
     
+class MovieSerializer(serializers.ModelSerializer):
+    '''Handels movie model'''
     
+    class Meta:
+        model = Movie
+        exclude = ['created_at', 'updated_at']
+        
+        
+class TrailerSerializer(serializers.ModelSerializer):
+    '''Handels trailer model'''
+    
+    class Meta:
+        model = Trailer
+        exclude = ['created_at', 'updated_at']
     
     

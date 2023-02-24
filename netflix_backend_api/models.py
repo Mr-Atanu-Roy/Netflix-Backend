@@ -107,7 +107,7 @@ class Genres(BaseModel):
     It will contain information about movie and series genres
     '''
     
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     description = models.TextField()
     
     class Meta:
@@ -117,33 +117,12 @@ class Genres(BaseModel):
         return self.name
     
     
-class Movie(BaseModel):
-    '''
-    It will contain data of all movies and series
-    '''
-    
-    title = models.CharField(max_length=255)
-    movie_slug = AutoSlugField(populate_from='title', unique=True)
-    description = models.TextField(null=True, blank=True)
-    release_date = models.DateField(default=current_time)
-    poster1 = models.FileField(upload_to = 'movie/poster/', max_length=600, verbose_name="Movie Poter 1", null=True)
-    poster2 = models.FileField(upload_to = 'movie/poster/', max_length=600, verbose_name="Movie Poter 2", null=True, blank=True)
-    movie_video_url = models.URLField(max_length=600, blank=True, null=True)
-    genres = models.ManyToManyField(Genres)
-
-    class Meta:
-        verbose_name_plural = "Movies"
-    
-    def __str__(self):
-        return self.title
-    
     
 class Cast(BaseModel):
     '''
     It will contain information about the cast or actors
     '''
     
-    movie = models.ManyToManyField(Movie)
     name = models.CharField(max_length=255)
     country = models.CharField(max_length=255)
     date_of_birth = models.DateField(null=True, blank=True)
@@ -155,6 +134,30 @@ class Cast(BaseModel):
 
     def __str__(self):
         return self.name
+    
+    
+class Movie(BaseModel):
+    '''
+    It will contain data of all movies and series
+    '''
+    
+    title = models.CharField(max_length=255)
+    movie_slug = AutoSlugField(populate_from='title', unique=True)
+    language = models.CharField(max_length=255, choices=language_choices, default="english")
+    description = models.TextField(null=True, blank=True)
+    release_date = models.DateField(default=current_time)
+    poster1 = models.FileField(upload_to = 'movie/poster/', max_length=600, verbose_name="Movie Poter 1", null=True)
+    poster2 = models.FileField(upload_to = 'movie/poster/', max_length=600, verbose_name="Movie Poter 2", null=True, blank=True)
+    movie_video_url = models.URLField(max_length=600, blank=True, null=True)
+    genres = models.ManyToManyField(Genres)
+    cast = models.ManyToManyField(Cast)
+
+    class Meta:
+        verbose_name_plural = "Movies"
+    
+    def __str__(self):
+        return self.title
+    
 
 
 class Trailer(BaseModel):

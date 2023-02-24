@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     #third-party
     'rest_framework',
     'rest_framework_simplejwt',
+    'django_filters',
         
     #own
     'netflix_backend_api',

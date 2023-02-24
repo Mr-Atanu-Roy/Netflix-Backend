@@ -1,12 +1,17 @@
-from django.shortcuts import render
-
+from django.shortcuts import get_object_or_404, render
 from django.contrib import auth
+
 
 from rest_framework import status
 from rest_framework.response import Response
+
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions
+from rest_framework.generics import ListAPIView, RetrieveAPIView
+
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from django_filters.rest_framework import DjangoFilterBackend
+
 
 from netflix_backend_api.helper import get_token, get_user, get_profile
 
@@ -18,8 +23,14 @@ from netflix_backend_api.serializers import (
     OTPSerializer,
     EmailVerifySerializer,
     ResetPasswordSerializers,
+    MovieSerializer,
+    TrailerSerializer,
 )
 
+from netflix_backend_api.models import (
+    Movie,
+    Trailer,
+)
 
 # Create your views here.
 
@@ -121,6 +132,7 @@ class LoginView(APIView):
         
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
                 
+
 
 class UserProfileView(APIView):
     '''
@@ -345,7 +357,65 @@ class ResetPassword(APIView):
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
     
 
+
+class ListMovieView(ListAPIView):
+    '''
+    This api view will retrive all movies or filters movie based on query filter
+    '''
+    
+    queryset = Movie.objects.all() 
+    serializer_class = MovieSerializer
+    
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['title', 'language', 'genres', 'cast']
     
 
 
+class RetriveMovieView(APIView):
+    '''
+    This api view will retrive details of a movie as as per given movie slug
+    '''
+    
+    def get(self, request, movieSlug):
+        '''handel get request-retrive movie'''
+        
+        try:
+            #check if movie exists
+            movie = Movie.objects.get(movie_slug=movieSlug)
+            
+        except Movie.DoesNotExist:
+            #else return this
+            response = {
+                "status": status.HTTP_400_BAD_REQUEST,
+                "data": request.data,
+                "message": "Movie does not exists"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+        movie_serializer = MovieSerializer(movie)
+        response = {
+            "status": status.HTTP_200_OK,
+            "data": movie_serializer.data,
+            "message": "Movie Retrived"
+        }
+        return Response(response, status=status.HTTP_200_OK)
+            
+              
 
+class ListTrailerView(ListAPIView):
+    '''
+    This api view will retrive all trailer or filters trailer based on query filter
+    '''
+    
+    queryset = Trailer.objects.all() 
+    serializer_class = TrailerSerializer
+    
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['movie']
+        
+        
+        
+        
+        
+        

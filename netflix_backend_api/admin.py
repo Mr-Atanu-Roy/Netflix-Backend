@@ -72,16 +72,16 @@ class OTPAdmin(admin.ModelAdmin):
     
     
 class MovieAdmin(admin.ModelAdmin):
-    list_display = ('title', 'release_date', 'created_at')
+    list_display = ('title', 'language', 'release_date', 'created_at')
     fieldsets = [
         ("Movie Details", {
             "fields": (
-                ['title', 'release_date', 'description']
+                ['title', 'language', 'release_date', 'description']
             ),
         }),
-        ("Movie Genre", {
+        ("Movie Genre and Cast", {
             "fields": (
-                ['genres']
+                ['genres', 'cast']
             )
         }),
         ("Poster and Link", {
