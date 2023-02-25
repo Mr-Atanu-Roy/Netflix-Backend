@@ -1,6 +1,6 @@
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from netflix_backend_api.models import NetflixUser, UserProfile
+from netflix_backend_api.models import NetflixUser, UserProfile, Movie
 
 import datetime
 from django.conf import settings
@@ -33,6 +33,19 @@ def get_profile(user):
         #return this if any other error occurs
         return None, "something went wrong"
 
+
+
+def get_movie(movie_slug):
+    '''get the movie instance'''
+    
+    try:
+        return Movie.objects.get(movie_slug=movie_slug), None
+    except Movie.DoesNotExist:
+        return None, "Movie does not exists"
+    except Exception as e:
+        return None, "Something went wrong"
+        
+    
 
 def get_token(user):
     '''

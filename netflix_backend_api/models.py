@@ -180,8 +180,8 @@ class Watchlist(BaseModel):
     It will contain the movies and series that a user will add to his watchlist
     '''
     
+    user = models.ForeignKey(NetflixUser, on_delete=models.CASCADE, verbose_name="User")
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, null=True)
-    user = models.OneToOneField(NetflixUser, on_delete=models.CASCADE, verbose_name="User")
     
     class Meta:
         verbose_name_plural = "User Watchlist"
@@ -195,8 +195,8 @@ class Review(BaseModel):
     Contains reviews of User for movies and series
     '''
     
-    movie = models.ForeignKey(Movie, on_delete=models.CASCADE, null=True)
     user = models.ForeignKey(NetflixUser, on_delete=models.CASCADE)
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE, null=True)
     rating = models.IntegerField(choices=rating_choices)
     comment = models.TextField(null=True, blank=True)
     

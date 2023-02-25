@@ -13,7 +13,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django_filters.rest_framework import DjangoFilterBackend
 
 
-from netflix_backend_api.helper import get_token, get_user, get_profile
+from netflix_backend_api.helper import get_token, get_user, get_profile, get_movie
 
 
 from netflix_backend_api.serializers import (
@@ -27,6 +27,9 @@ from netflix_backend_api.serializers import (
     TrailerSerializer,
     CastSerializer,
     GenresSerializer,
+    WatchlistSerializerGET,
+    WatchlistSerializerPOST,
+    ReviewSerializer
 )
 
 from netflix_backend_api.models import (
@@ -34,6 +37,8 @@ from netflix_backend_api.models import (
     Trailer,
     Cast,
     Genres,
+    Watchlist,
+    Review
 )
 
 # Create your views here.
@@ -238,10 +243,10 @@ class GetOTPView(APIView):
                     "status": status.HTTP_201_CREATED,
                     "data": {
                         "email": request.data.get("email"),
-                        "otp": str(otp),
+                        "otp": "OTP is send to your email",
                         "purpose": request.data.get("purpose")
                     },
-                    "message": f"OTP generated"
+                    "message": "OTP is send to you email"
                 }
                 
             return Response(response, status=status.HTTP_201_CREATED)
@@ -252,7 +257,7 @@ class GetOTPView(APIView):
                     "status": status.HTTP_400_BAD_REQUEST,
                     "data": {
                         "email": request.data.get("email"),
-                        "otp": "",
+                        "otp": None,
                         "purpose": request.data.get("purpose")
                     },
                     "message": otp_serializer.errors
@@ -572,3 +577,218 @@ class FullMovieDetailView(APIView):
         
         return Response(response, status=status.HTTP_200_OK)
 
+
+class WatchlistView(APIView):
+    '''
+    This API view will list and create user watchlist
+    '''
+    
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        '''handels post request'''
+        
+        #get the authenticated user
+        user, _ = get_user(request.user)
+        
+        #get all the watchlist objs of authenticated user
+        watchlist = Watchlist.objects.filter(user=user)
+
+        if len(watchlist) == 0:
+            #if nothing in watchlist return this
+            response = {
+                "status": status.HTTP_200_OK,
+                "data": "",
+                "message": "your watchlist is empty"
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        
+        else:
+            #else do this
+            watchlist_serializer = WatchlistSerializerGET(watchlist, many=True)
+            response = {
+                "status": status.HTTP_200_OK,
+                "data": watchlist_serializer.data,
+                "message": f"your watchlist has {len(watchlist)} items"
+            }
+            return Response(response, status=status.HTTP_200_OK)    
+        
+    def post(self, request):
+        '''Handel post request'''
+             
+        watchlist_serializer = WatchlistSerializerPOST(data=request.data, context={"user": request.user})
+        
+        if watchlist_serializer.is_valid():
+            watchlist = watchlist_serializer.save()
+            
+            response = {
+                "status": status.HTTP_200_OK,
+                "data": watchlist_serializer.validated_data,
+                "message": "movie added to your watchlist"
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        
+        response = {
+            "status": status.HTTP_400_BAD_REQUEST,
+            "data": watchlist_serializer.data,
+            "message": watchlist_serializer.errors
+        }
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            
+
+class WatchlistDeleteView(APIView):
+    '''This view will delete user watchlist'''
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]    
+        
+    
+    def delete(self, request, movie_slug):
+        '''Handels delete request-Delete a watchlist'''
+        
+        user, _ = get_user(request.user)
+        
+        try:
+            movie = Movie.objects.get(movie_slug=movie_slug)
+        except Movie.DoesNotExist:
+            response = {
+                "status" : status.HTTP_400_BAD_REQUEST,
+                "data": "",
+                "message": "Movie not found"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+        watchlist = Watchlist.objects.filter(user=user, movie=movie)
+        if len(watchlist) > 0:
+            watchlist.delete()
+            
+            response = {
+                "status" : status.HTTP_404_NOT_FOUND,
+                "data": "",
+                "message": "Movie deleted"
+            }
+            return Response(response, status=status.HTTP_404_NOT_FOUND)
+        
+        response = {
+            "status" : status.HTTP_400_BAD_REQUEST,
+            "data": "",
+            "message": "This movie is not in your watchlist"
+        }
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class ReviewRetriveView(APIView):
+    '''This API will retrive all reviews of a perticular movie based on movie_slug'''
+    
+    def get(self, request, movie_slug):
+        
+        try:
+            movie = Movie.objects.get(movie_slug=movie_slug)
+        except Movie.DoesNotExist:
+            response = {
+                "status" : status.HTTP_400_BAD_REQUEST,
+                "data": "",
+                "message": "Movie not found"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+        reviews = Review.objects.filter(movie=movie)
+        
+        if len(reviews) == 0:
+            response = {  
+            "status" : status.HTTP_400_BAD_REQUEST,
+                "data": "",
+                "message": "No review till now for this movie"
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+        else:
+            review_serializer = ReviewSerializer(reviews, many=True)
+            
+            response = {  
+            "status" : status.HTTP_200_OK,
+                "data": review_serializer.data,
+                "message": "review retrived"
+            }
+            return Response(response, status=status.HTTP_200_OK)
+    
+
+class ReviewCreateView(APIView):
+    '''This api will create or update user review'''
+    
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    
+    def post(self, request, movie_slug):
+        '''handels post request - Create user review'''
+        review_serializer = ReviewSerializer(data=request.data, context={"user": request.user, "movie_slug": movie_slug})
+        
+        if review_serializer.is_valid():
+            review = review_serializer.save()
+            
+            response = {
+                "status": status.HTTP_201_CREATED,
+                "data": {
+                    "movie": str(review.movie),    
+                    "rating": review.rating,    
+                    "comment": review.comment,    
+                },
+                "message": "Review posted"
+            }
+            
+            return Response(response, status=status.HTTP_201_CREATED)
+        
+        response = {
+            "status": status.HTTP_400_BAD_REQUEST,
+            "data": review_serializer.data,
+            "message": review_serializer.errors
+        }
+        
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, movie_slug):
+        '''handels put request - update user review'''
+        
+        movie, _ = get_movie(movie_slug)
+        
+        if movie is None:
+            response = {
+                "status": status.HTTP_400_BAD_REQUEST,
+                "data": "",
+                "message": "Movie does not exists"
+            }
+            
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+        review = Review.objects.get(user=request.user, movie=movie)
+        review_serializer = ReviewSerializer(review, data=request.data, partial=True, context={"user": request.user, "movie_slug": movie_slug})
+            
+        if review_serializer.is_valid():
+            #if data is valid update it
+            review_serializer.save()
+            
+            #and return this
+            response = {
+                "status": status.HTTP_201_CREATED,
+                "data": review_serializer.data,
+                "message": "review updated"
+            }
+            
+            return Response(response, status=status.HTTP_201_CREATED)
+        
+        else:
+            #if data is not valid return this
+            response = {
+                "status": status.HTTP_400_BAD_REQUEST,
+                "data": review_serializer.data,
+                "error": review_serializer.errors
+            }
+            
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+        
+        
+        

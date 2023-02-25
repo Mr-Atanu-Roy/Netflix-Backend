@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from netflix_backend_api.helper import current_time, get_user
+from netflix_backend_api.helper import current_time, get_user, get_movie
 import datetime
 
 from netflix_backend_api.models import (
@@ -200,14 +200,24 @@ class ResetPasswordSerializers(serializers.Serializer):
 class MovieSerializer(serializers.ModelSerializer):
     '''Handels movie model'''
     
+    genres = serializers.SerializerMethodField()
+    cast = serializers.SerializerMethodField()
+    
     class Meta:
         model = Movie
         exclude = ['created_at', 'updated_at']
+        
+    def get_genres(self, obj):
+        return [genre.name for genre in obj.genres.all()]
+
+    def get_cast(self, obj):
+        return [cast.name for cast in obj.cast.all()]
         
         
 class TrailerSerializer(serializers.ModelSerializer):
     '''Handels trailer model'''
     
+    movie = serializers.CharField(source="movie.title")
     class Meta:
         model = Trailer
         exclude = ['created_at', 'updated_at']
@@ -227,8 +237,83 @@ class GenresSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genres
         exclude = ['created_at', 'updated_at']
-        
-    
 
+
+class WatchlistSerializerGET(serializers.ModelSerializer):
+    '''It will handel get request made to get user's watchlist'''
+    
+    movie = serializers.CharField(source="movie.title")
+    class Meta:
+        model = Watchlist
+        fields = ['movie', 'created_at']
+       
+    
+class WatchlistSerializerPOST(serializers.Serializer):
+    '''Handels creation of user watchlist'''
+       
+    movie_slug = serializers.CharField()
+    
+    def validate(self, data):
+        '''This validation is to check if movie is alredy added in watchlist'''
+        
+        if data.get("movie_slug"):
+            #check if movie_slug is given
+            try:
+                movie = Movie.objects.get(movie_slug=data.get('movie_slug'))
+            except Movie.DoesNotExist:
+                raise serializers.ValidationError("Invalid movie")
+            
+            user, _ = get_user(self.context.get("user"))
+            
+            #check if movie is already added in watchlist
+            watchlist = Watchlist.objects.filter(movie=movie, user=user)
+            
+            if len(watchlist) != 0:
+                #if movie exists in watchlist raise validation error
+                raise serializers.ValidationError("This movie is already in your watchlist")
+            
+        return data
+            
+
+    def create(self, validated_data):
+        
+        user, _ = get_user(self.context.get("user"))
+        movie = Movie.objects.get(movie_slug=validated_data.get('movie_slug'))
+        return Watchlist.objects.create(movie=movie, user=user)
+    
+    
+class ReviewSerializer(serializers.ModelSerializer):
+    '''Handels Watchlist model'''
+    
+    user = serializers.CharField(source='user.first_name', read_only=True)
+    
+    class Meta:
+        model = Review
+        fields = ['user', 'rating', 'comment', 'updated_at']
+    
+    
+    def update(self, instance, validated_data):
+            
+        instance.rating = validated_data.get("rating", instance.rating)
+        instance.comment = validated_data.get("comment", instance.comment)
+        instance.save()
+            
+        return instance
+    
+    def create(self, validated_data):
+        
+        if self.context.get("user") and self.context.get("movie_slug"):
+            user, _ = get_user(self.context.get("user"))
+            movie, _ = get_movie(self.context.get("movie_slug"))
+            
+            check_review = Review.objects.filter(user=user, movie=movie)
+            if len(check_review) > 0:
+                raise serializers.ValidationError("You have already reviewd this movie")
+            
+        return Review.objects.create(user=user, movie=movie, rating=validated_data.get("rating"), comment=validated_data.get("comment"))
+
+
+
+    
         
         

@@ -1,0 +1,730 @@
+{
+	"info": {
+		"_postman_id": "38f39513-0913-4ee4-9c99-0421d1a44163",
+		"name": "Netflix API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Netflix Auth",
+			"item": [
+				{
+					"name": "User Profile",
+					"item": [
+						{
+							"name": "User Profile Retrive",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/netflix/api/profile/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"netflix",
+										"api",
+										"profile",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "User Profile Update",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"country\": \"America\",\r\n    \"date_of_birth\": \"2005-02-20\",\r\n    \"language\": \"english\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://127.0.0.1:8000/netflix/api/profile/",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"netflix",
+										"api",
+										"profile",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"auth": {
+						"type": "bearer",
+						"bearer": [
+							{
+								"key": "token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc3MzE3OTUyLCJpYXQiOjE2NzczMTA3NTIsImp0aSI6IjkyM2MwOTYxNjgyNjQ0Nzc4ZjgzMGNiYzM5NzgyOWFhIiwiZW1haWwiOiJhcjE5OTU0ODdAZ21haWwuY29tIn0.Fh3uv_K6hXfUiJzRUkwNOAx1CBFnHkMGRSJWEhSDxQE",
+								"type": "string"
+							}
+						]
+					},
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"ar1995487@gmail.com\",\r\n    \"password\": \"123\",\r\n    \"first_name\": \"Atanu\",\r\n    \"last_name\": \"Roy\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/register/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"register",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"ar1995487@gmail.com\",\r\n    \"password\": \"12345\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/login/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Email-verification",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"ar1995487@gmail.com\",\r\n    \"otp\": 624687\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/email-verify/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"email-verify",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get OTP",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"ar1995487@gmail.com\",\r\n    \"purpose\": \"reset_password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/get-otp/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"get-otp",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"ar1995487@gmail.com\",\r\n    \"otp\": 345665,\r\n    \"password\": 12345\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/reset-password/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"reset-password",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Movie",
+			"item": [
+				{
+					"name": "Retrive All Movies",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/movies/?language=english",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"movies",
+								""
+							],
+							"query": [
+								{
+									"key": "language",
+									"value": "english"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Retrive A Movie",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/movies/rocketry-the-nambi-effect",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"movies",
+								"rocketry-the-nambi-effect"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Full Movie Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/full-movie-detail/rocketry-the-nambi-effect",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"full-movie-detail",
+								"rocketry-the-nambi-effect"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Trailer",
+			"item": [
+				{
+					"name": "Retrive All Trailer",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/trailer",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"trailer"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Retrive  A Trailer",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/trailer/rocketry-the-nambi-effect",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"trailer",
+								"rocketry-the-nambi-effect"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cast",
+			"item": [
+				{
+					"name": "Retrive All Cast",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/cast/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"cast",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Retrive A Cast",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/cast/rocketry-the-nambi-effect",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"cast",
+								"rocketry-the-nambi-effect"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Genres",
+			"item": [
+				{
+					"name": "Retrive All Genres",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/genres",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"genres"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User Watchlist",
+			"item": [
+				{
+					"name": "Retrive User Watchlist",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/user-watchlist/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"user-watchlist",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create User Watchlist",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"movie_slug\": \"interstellar\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/user-watchlist/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"user-watchlist",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc3MzE3OTUyLCJpYXQiOjE2NzczMTA3NTIsImp0aSI6IjkyM2MwOTYxNjgyNjQ0Nzc4ZjgzMGNiYzM5NzgyOWFhIiwiZW1haWwiOiJhcjE5OTU0ODdAZ21haWwuY29tIn0.Fh3uv_K6hXfUiJzRUkwNOAx1CBFnHkMGRSJWEhSDxQE",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "User Review",
+			"item": [
+				{
+					"name": "Retrive All Review",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/user-review/rocketry-the-nambi-effect",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"user-review",
+								"rocketry-the-nambi-effect"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create A Review",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"rating\": 5\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/user-review-create/rocketry-the-nambi-effect",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"user-review-create",
+								"rocketry-the-nambi-effect"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Review",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"rating\": 4,\r\n    \"comment\": \"Fantastic Movie\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/netflix/api/user-review-create/rocketry-the-nambi-effect",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"netflix",
+								"api",
+								"user-review-create",
+								"rocketry-the-nambi-effect"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc3MzE3OTUyLCJpYXQiOjE2NzczMTA3NTIsImp0aSI6IjkyM2MwOTYxNjgyNjQ0Nzc4ZjgzMGNiYzM5NzgyOWFhIiwiZW1haWwiOiJhcjE5OTU0ODdAZ21haWwuY29tIn0.Fh3uv_K6hXfUiJzRUkwNOAx1CBFnHkMGRSJWEhSDxQE",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	]
+}
